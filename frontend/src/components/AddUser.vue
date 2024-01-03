@@ -2,97 +2,38 @@
   <div>
     <button
       type="button"
-      @click="openModal"
+      @click="openDialog = true"
       class="rounded-md bg-indigo-600 px-4 py-2 mx-8 my-2 text-sm font-medium text-white hover:bg-indigo-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
     >
       Add User
     </button>
-    <TransitionRoot appear :show="isOpen" as="template">
-      <Dialog as="div" @close="closeModal" class="relative z-10">
-        <TransitionChild
-          as="template"
-          enter="duration-300 ease-out"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="duration-200 ease-in"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/25" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4 text-center">
-            <TransitionChild
-              as="template"
-              enter="duration-300 ease-out"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
-              >
-                <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
-                  Add User
-                </DialogTitle>
-                <div class="mt-2">
-                  <div class="flex flex-row">
-                    <div class="basis-1/4"><span>Name</span></div>
-                    <div class="basis-1/2">
-                      <input type="text" />
-                    </div>
-                  </div>
-                  <div class="flex flex-row">
-                    <div class="basis-1/4"><span>Gender</span></div>
-                    <div class="basis-1/2">
-                      <select
-                        class="block w-full mt-1 rounded-md border-black shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                      >
-                        <option>female</option>
-                        <option>male</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="text-right">
-                  <button
-                    type="button"
-                    class="inline-flex justify-center rounded-md border border-transparent bg-grey-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-grey-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 mx-2"
-                    @click="closeModal"
-                  >
-                    cancal
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                    @click="closeModal"
-                  >
-                    confirm
-                  </button>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
+    <UserDialog
+      :show="openDialog"
+      :message="message"
+      @close="onClose"
+      @confirm="onConfirm"
+    ></UserDialog>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
+import UserDialog from './UserDialog.vue'
+import Axios from 'axios'
 
-const isOpen = ref(true)
+const emits = defineEmits(['finish'])
+const openDialog = ref(false)
+const message = ref('')
 
-function closeModal() {
-  isOpen.value = false
+const onClose = () => {
+  openDialog.value = false
 }
-function openModal() {
-  isOpen.value = true
+const onConfirm = (data) => {
+  message.value = ''
+  Axios.post('http://localhost:5000/add_user', data).then((data) => {
+    message.value = data.data.message
+    openDialog.value = false
+    emits('finish')
+  })
 }
 </script>
